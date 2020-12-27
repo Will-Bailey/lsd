@@ -1,0 +1,8 @@
+db.steps.aggregate(
+    [
+        {$project : {_id:0, dateTime:1, value:0}}
+        {$match: 
+            {$substr: [dateTime, 5, 2]}: {$eg: "06"}
+        }
+    ]
+)
