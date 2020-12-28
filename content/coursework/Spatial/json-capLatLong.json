@@ -1,0 +1,97 @@
+[
+	{
+	"caption": "Grassland north of Eastdon ",
+	"ground truth toponym": "Eastdon",
+	"guide-latitude-WGS84": "50.611614",
+	"guide-longitude-WGS84": "-3.447207",
+	"disambiguated": "Eastdon, Teignbridge, Devon, South West England, England, EX6 8RH, United Kingdom"
+	}, 
+
+	{
+	"caption": "Wall north of Hulne Park ",
+	"ground truth toponym": "Hulne Park",
+	"guide-latitude-WGS84": "55.446522",
+	"guide-longitude-WGS84": "-1.748779",
+	"disambiguated": "Hulne Park, Denwick, Alnwick, Northumberland, North East England, England, United Kingdom"
+	},
+
+	{
+	"caption": "Farm track north of Aglionby ",
+	"ground truth toponym": "Aglionby",
+	"guide-latitude-WGS84": "54.908579",
+	"guide-longitude-WGS84": "-2.866381",
+	"disambiguated": "Aglionby, Carlisle, Cumbria, North West England, England, CA4 8AJ, United Kingdom"
+	},
+
+	{
+	"caption": "Long barrow north of Martin ",
+	"ground truth toponym": "Martin",
+	"guide-latitude-WGS84": "50.98477",
+	"guide-longitude-WGS84": "-1.910483",
+	"disambiguated": "Martin, Hampshire, South East, England, SP6 3LF, United Kingdom"
+	}, 
+
+	{
+	"caption": "A483 north of Pool Quay ",
+	"ground truth toponym": "Pool Quay",
+	"guide-latitude-WGS84": "52.701294",
+	"guide-longitude-WGS84": "-3.098761",
+	"disambiguated": "Pool Quay, Powys, Wales, SY21 9JS, United Kingdom"
+	}, 
+
+	{
+	"caption": "Power line north of Dagnets Lane ",
+	"ground truth toponym": "Dagnets Lane",
+	"guide-latitude-WGS84": "51.846349",
+	"guide-longitude-WGS84": "0.537283",
+	"disambiguated": "Dagnets Lane, Black Notley, Braintree, Essex, East of England, England, CM77 8QP, United Kingdom"
+	}, 
+
+	{
+	"caption": "Fields north of Ellington ",
+	"ground truth toponym": "Ellington",
+	"guide-latitude-WGS84": "52.347205",
+	"guide-longitude-WGS84": "-0.291146",
+	"disambiguated": "Ellington, Cambridgeshire, East of England, England, United Kingdom"
+	}, 
+
+	{
+	"caption": "Fields north of Belsey Bridge Road ",
+	"ground truth toponym": "Belsey Bridge Road",
+	"guide-latitude-WGS84": "52.479252",
+	"guide-longitude-WGS84": "1.428283",
+	"disambiguated": "Belsey Bridge Road, Ditchingham, South Norfolk, Norfolk, East of England, England, NR35 2DT, United Kingdom"
+	}, 
+
+	{
+	"caption": "Pasture north of Balhomish ",
+	"ground truth toponym": "Balhomish",
+	"guide-latitude-WGS84": "56.544822",
+	"guide-longitude-WGS84": "-3.605378",
+	"disambiguated": "Balhomish, Inver, Perth and Kinross, Scotland, PH8 0DX, United Kingdom"
+	}, 
+
+	{
+	"caption": "The A22 north of South Godstone ",
+	"ground truth toponym": "South Godstone",
+	"guide-latitude-WGS84": "51.222992",
+	"guide-longitude-WGS84": "-0.04726",
+	"disambiguated": "South Godstone, Surrey, South East, England, RH9 8HS, United Kingdom"
+	}, 
+
+	{
+	"caption": "Farm on track east of Hardwick ",
+	"ground truth toponym": "Hardwick",
+	"guide-latitude-WGS84": "51.866063",
+	"guide-longitude-WGS84": "-0.826492",
+	"disambiguated": "Hardwick, Buckinghamshire, South East, England, HP22 4DX, United Kingdom"
+	}, 
+
+	{
+	"caption": "Un-named lane east of Clare ",
+	"ground truth toponym": "Clare",
+	"guide-latitude-WGS84": "51.681005",
+	"guide-longitude-WGS84": "-1.02134",
+	"disambiguated": "Clare, South Oxfordshire, Oxfordshire, South East, England, OX9 7HF, United Kingdom"
+	}
+]
