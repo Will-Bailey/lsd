@@ -23,6 +23,7 @@ def sanatise_jsons(json_dict):
                     items = list(point.items())
                     if items[0][1] not in new_dict[person].keys():
                         new_dict[person][items[0][1]] = {}
+                        new_dict[person][items[0][1]]["dateTime"] = items[0][1]
                     new_dict[person][items[0][1]][metric] = items[1][1]
     return new_dict
 
@@ -34,9 +35,9 @@ def write_jsons(json_dict):
             os.makedirs("data/")
         with open("data/" + person + ".json", "w"):
             pass
-
-        with open("data/" + person + ".json", "a") as json_file:
-            json.dump(json_dict[person], json_file, indent=2)
+        for timestamp in json_dict[person].keys():
+            with open("data/" + person + ".json", "a") as json_file:
+                json.dump(json_dict[person][timestamp], json_file, indent=2)
 
 json_dict = get_jsons()
 json_dict = sanatise_jsons(json_dict)
