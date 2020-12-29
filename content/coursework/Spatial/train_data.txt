@@ -1,0 +1,4 @@
+train_data = [
+	("Long winding road at Quiraing", [21, 0, 'LOC'])
+	{"Ariel View Of Manchester", [15, 0, 'GPE']}
+]
