@@ -109,4 +109,7 @@ def read_caps(file_name):
 if __name__ == "__main__":
     caps = read_caps("json-capLatLong.json")
     for cap in caps:
-        print(cap)
+        out_str = "Caption:" + cap.caption + ", Entities: "
+        for toponym in cap.locs:
+            out_str += toponym.toponym
+
