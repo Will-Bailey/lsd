@@ -1,70 +1,41 @@
-from geopy.geocoders import Nominatim
-from question1 import get_entities, analyse_results
-import geopy.distance
-
-def get_coords(dicts):
-    geolocator = Nominatim(user_agent="coursework")
-    coords = {}
-
-    for dict in dicts:
-        dict["predictions"] = []
-        for loc in dict["location_entities"]:
-            prediction = {}
-            
-            predicted_loc = geolocator.geocode(loc, limit=1)
-            prediction["coords"] = (predicted_loc.latitude, predicted_loc.longitude)
-            prediction["address"] = predicted_loc.address
-            
-            dict["predictions"].append(prediction)
-
-    return dicts
-
-def analyse_coords(dicts):
-    new_dicts = []
-    accurate_predictions = 0
-    total_predictions = 0
-
-    for dict in dicts:
-        if dict["false_neg"] > 0:
-            dict["predictions"] = []
-
-            prediction = {}
-            prediction["true_pos"] = 0
-            prediction["false_pos"] = dict["false_pos"]
-            prediction["false_neg"] = dict["false_neg"]
-
-            dict["predictions"].append(prediction)
-
-        else :
-            true_pos, false_pos, false_neg = 0, 0, 0
-            expected_coords = dict["expected_coords"]
-            
-            for prediction in  dict["predictions"]:
-                predicted_coords = prediction["coords"]
-
-                total_predictions += 1
-                prediction["error"] = geopy.distance.distance(predicted_coords, expected_coords).km
-
-                if prediction["error"] <= 20:
-                    true_pos += 1
-                    accurate_predictions += 1
-                else:
-                    false_pos += 1
-
-                prediction["true_pos"], prediction["false_pos"], prediction["false_neg"] = true_pos, false_pos, false_neg
-        
-        new_dicts.append(dict)
-    return new_dicts
-
-
-def main(file_name="json-capLatLong.json"):
-    dicts = analyse_results(get_entities(file_name))
-    dicts = get_coords(dicts)
-    dicts = analyse_coords(dicts)
-
-    for dict in dicts:
-        for prediction in dict["predictions"]:
-            print(str(prediction["address"]) + ", " + str(prediction["coords"]) + ", " + str(prediction["true_pos"]) + ", " + str(prediction["false_pos"]) + ", " + str(prediction["false_neg"]))
+from question1 import *
 
 if __name__ == "__main__":
-    main()
+    caps = read_caps("json-capLatLong.json", improved_ner=True)
+    true_pos = 0
+    false_pos = 0
+    false_neg = 0
+
+    out_str = ""
+
+    for cap in caps:
+        out_str += "Caption: " + cap.caption
+        
+        if len(cap.toponyms) == 0:
+            out_str += ", no entities detected "
+        else:
+            out_str += ", Locations: "
+            for toponym in cap.toponyms:
+                out_str += "("
+                out_str += str(toponym.address) + ", "
+                out_str += str(toponym.coords) + ", "
+                out_str += "), "
+
+        true_pos += cap.toponym_true_pos
+        false_pos += cap.toponym_false_pos
+        false_neg += cap.toponym_false_neg
+
+        out_str += "\n"
+
+    precision = true_pos/(true_pos + false_pos)
+    recall = true_pos / len(caps)
+    f1 = 2 * precision * recall / (precision + recall)
+
+    out_str += "True Positive(s): " + str(true_pos) + "\n"
+    out_str += "False Positive(s): " + str(false_pos) + "\n"
+    out_str += "False Negative(s): " + str(false_neg) + "\n"
+    out_str += "Precision: " + str(precision) + "\n"
+    out_str += "Recall: " + str(recall) + "\n"
+    out_str += "F1: " + str(f1) + "\n"
+
+    print(out_str)

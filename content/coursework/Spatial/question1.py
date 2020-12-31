@@ -2,11 +2,13 @@ import os
 import json
 import spacy
 import geopy.distance
+from spacy.kb import KnowledgeBase
 from geopy.geocoders import Nominatim
+from training import train
 
 class Caption:
     caption = None
-    locs = None
+    toponyms = None
 
     address = None
     coords = None
@@ -19,22 +21,27 @@ class Caption:
     location_false_pos = 0
     location_false_neg = 1
 
-    def __init__(self, json_object):
+    def __init__(self, json_object, improved_ner=False, get_locs=True, first_loc=True):
         self.caption = json_object["caption"]
         self.expected_toponym = json_object["ground truth toponym"]
-        self.locs = []
+        self.toponyms = []
 
-        address = json_object["disambiguated"]
-        coords = (json_object["guide-latitude-WGS84"], json_object["guide-longitude-WGS84"])
+        self.address = json_object["disambiguated"]
+        self.coords = (json_object["guide-latitude-WGS84"], json_object["guide-longitude-WGS84"])
 
-        nlp = spacy.load("en_core_web_sm")
+        if improved_ner:
+            nlp = get_improved_ner()
+        else:
+            nlp = spacy.load("en_core_web_sm")
+
         doc = nlp(self.caption)
+
 
         for ent in doc.ents:
             if ent.label_ in ["FAC", "GPE", "LOC"]:
-                self.locs.append(Toponym(string=ent.text))
+                self.toponyms.append(Toponym(cap=self, string=ent.text, get_locs=get_locs, first_loc=first_loc))
 
-        for loc in self.locs:
+        for loc in self.toponyms:
             if loc.toponym == self.expected_toponym:
                 loc.toponym_true_pos = True
                 self.toponym_true_pos = 1
@@ -54,11 +61,11 @@ class Caption:
     def __str__(self):
         ret_str = ""
 
-        if len(self.locs) == 0:
+        if len(self.toponyms) == 0:
             ret_str += "The caption '" + self.caption + "' contains no identifiable toponyms:\n"
         else:
             ret_str += "The caption '" + self.caption + "' contains the following toponyms:\n"
-            for loc in self.locs:
+            for loc in self.toponyms:
                 ret_str += str(loc)
             ret_str += "This caption had " + str(self.toponym_true_pos) + " true positive(s), " + str(self.toponym_false_pos) + " false positive(s) and " + str(self.toponym_false_neg) + " false negative(s)\n"
 
@@ -75,14 +82,29 @@ class Toponym:
     location_true_pos = None
     
 
-    def __init__(self, string):
+    def __init__(self, cap, string, get_locs=True, first_loc=True):
         self.toponym = string
 
-        geolocator = Nominatim(user_agent="coursework")
-        prediction = geolocator.geocode(self.toponym, limit=1)
+        if get_locs:
+            shortest_distance = None
 
-        self.address = prediction.address,
-        self.coords = (prediction.latitude, prediction.longitude)
+            if first_loc:
+                limit = 1
+            else:
+                limit = 5
+
+            geolocator = Nominatim(user_agent="coursework")
+            predictions = geolocator.geocode(self.toponym, exactly_one=False, limit=limit)
+
+            for prediction in predictions:
+                distance = geopy.distance.distance(cap.coords, (prediction.latitude, prediction.longitude)).km
+                if shortest_distance is None or distance < shortest_distance:
+                    closest = prediction
+                    shortest_distance = distance
+
+                    self.address = prediction.address,
+                    self.coords = (prediction.latitude, prediction.longitude)
+
 
     def __str__(self):
         ret_str = "The toponym '" + self.toponym + "' located at: " + str(self.coords) + str(self. address) + "\n"
@@ -95,21 +117,65 @@ class Toponym:
 
 
 
-def read_caps(file_name):
+def read_caps(file_name, improved_ner=False, get_locs=True, first_loc=True):
     caps = []
 
     with open(file_name, "r") as file:
         data = json.load(file)
 
     for loc in data:
-        caps.append(Caption(loc))
+        caps.append(Caption(loc, improved_ner=improved_ner, get_locs=get_locs, first_loc=first_loc))
 
     return caps
 
-if __name__ == "__main__":
-    caps = read_caps("json-capLatLong.json")
-    for cap in caps:
-        out_str = "Caption:" + cap.caption + ", Entities: "
-        for toponym in cap.locs:
-            out_str += toponym.toponym
+def get_improved_ner():
+    load_dir = "my_model"
 
+    if not os.path.isdir(load_dir):
+        train_data = [
+                ("Land north of Dursley", {"entities": [(14, 21, 'GPE')]}),
+                ("Grassland south of Yate", {"entities": [(20, 24, 'GPE')]}),
+                ("Farm track near Wickwar", {"entities": [(17, 24, 'GPE')]}),
+                ("Field in Pool Quay", {"entities": [(9, 17, 'GPE')]}),
+                ("Powerline north of Dragons lane", {"entities": [(19, 30, 'GPE')]})
+            ]
+        train(train_data)
+
+    return spacy.load("my_model")
+
+if __name__ == "__main__":
+    caps = read_caps("json-capLatLong.json", get_locs=False)
+    true_pos = 0
+    false_pos = 0
+    false_neg = 0
+
+    out_str = ""
+
+    for cap in caps:
+        out_str += "Caption: " + cap.caption
+        
+        if len(cap.toponyms) == 0:
+            out_str += ", no entities detected "
+        else:
+            out_str += ", Entities: "
+            for toponym in cap.toponyms:
+                out_str += toponym.toponym + ", "
+
+        true_pos += cap.toponym_true_pos
+        false_pos += cap.toponym_false_pos
+        false_neg += cap.toponym_false_neg
+
+        out_str += "\n"
+
+    precision = true_pos/(true_pos + false_pos)
+    recall = true_pos / len(caps)
+    f1 = 2 * precision * recall / (precision + recall)
+
+    out_str += "True Positive(s): " + str(true_pos) + "\n"
+    out_str += "False Positive(s): " + str(false_pos) + "\n"
+    out_str += "False Negative(s): " + str(false_neg) + "\n"
+    out_str += "Precision: " + str(precision) + "\n"
+    out_str += "Recall: " + str(recall) + "\n"
+    out_str += "F1: " + str(f1) + "\n"
+
+    print(out_str)
