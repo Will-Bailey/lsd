@@ -16,14 +16,13 @@ if __name__ == "__main__":
         else:
             out_str += ", Locations: "
             for toponym in cap.toponyms:
-                out_str += "("
                 out_str += str(toponym.address) + ", "
                 out_str += str(toponym.coords) + ", "
-                out_str += "), "
+                out_str += str(toponym.distance)
 
-        true_pos += cap.toponym_true_pos
-        false_pos += cap.toponym_false_pos
-        false_neg += cap.toponym_false_neg
+        true_pos += cap.location_true_pos
+        false_pos += cap.location_false_pos
+        false_neg += cap.location_false_neg
 
         out_str += "\n"
 

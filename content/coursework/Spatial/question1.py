@@ -1,10 +1,10 @@
 import os
 import json
 import spacy
+import random
 import geopy.distance
 from spacy.kb import KnowledgeBase
 from geopy.geocoders import Nominatim
-from training import train
 
 class Caption:
     caption = None
@@ -77,6 +77,7 @@ class Toponym:
 
     address = None
     coords = None
+    distance = None
 
     toponym_true_pos = None
     location_true_pos = None
@@ -91,7 +92,7 @@ class Toponym:
             if first_loc:
                 limit = 1
             else:
-                limit = 5
+                limit = 20
 
             geolocator = Nominatim(user_agent="coursework")
             predictions = geolocator.geocode(self.toponym, exactly_one=False, limit=limit)
@@ -101,6 +102,7 @@ class Toponym:
                 if shortest_distance is None or distance < shortest_distance:
                     closest = prediction
                     shortest_distance = distance
+                    self.distance = shortest_distance
 
                     self.address = prediction.address,
                     self.coords = (prediction.latitude, prediction.longitude)
@@ -128,16 +130,45 @@ def read_caps(file_name, improved_ner=False, get_locs=True, first_loc=True):
 
     return caps
 
+def train(train_data, test=False):
+    nlp = spacy.load("en_core_web_sm")
+    ner = nlp.get_pipe("ner")
+
+    if test:
+        test_train_data(train_data)    
+
+    for caption, annotations in train_data:
+        for ent in annotations["entities"]:
+            ner.add_label(ent[2])
+
+    other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
+    with nlp.disable_pipes(*other_pipes):
+        optimiser = nlp.begin_training()
+        for i in range(100):
+            random.shuffle(train_data)
+            for caption, annotations in train_data:
+                nlp.update([caption], [annotations], drop=0.6, sgd=optimiser, losses={})
+
+    nlp.to_disk("my_model")
+
+def test_train_data(train_data):
+    for data in train_data:
+        for entity in data[1]["entities"]:
+            print(data[0][entity[0]:entity[1]])
+
 def get_improved_ner():
     load_dir = "my_model"
 
     if not os.path.isdir(load_dir):
         train_data = [
-                ("Land north of Dursley", {"entities": [(14, 21, 'GPE')]}),
-                ("Grassland south of Yate", {"entities": [(20, 24, 'GPE')]}),
-                ("Farm track near Wickwar", {"entities": [(17, 24, 'GPE')]}),
-                ("Field in Pool Quay", {"entities": [(9, 17, 'GPE')]}),
-                ("Powerline north of Dragons lane", {"entities": [(19, 30, 'GPE')]})
+                ("Farm track south of Wickwar", {"entities": [(20, 27, 'GPE')]}),
+                ("Farm track north of Yate", {"entities": [(20, 24, 'GPE')]}),
+                ("Long barrow west of North Nibley", {"entities": [(20, 32, 'GPE')]}),
+                ("Long barrow near Wotton", {"entities": [(17, 23, 'GPE')]}),
+                ("A483 east of Evesham", {"entities": [(13, 20, 'GPE')]}),
+                ("A483 east of Worcester", {"entities": [(13, 22, 'GPE')]}),
+                ("Power Line south of Wickwar", {"entities": [(20, 27, 'GPE')]}),
+                ("Power Line south of Yate", {"entities": [(20, 24, 'GPE')]})
             ]
         train(train_data)
 

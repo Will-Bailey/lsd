@@ -1,11 +1,11 @@
 import random
 import spacy
 
-def train(train_data, test_train_data=False):
+def train(train_data, test=False):
     nlp = spacy.load("en_core_web_sm")
     ner = nlp.get_pipe("ner")
 
-    if test_train_data:
+    if test:
         test_train_data(train_data)    
 
     for caption, annotations in train_data:
